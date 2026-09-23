@@ -63,7 +63,18 @@ useEffect(()=>{
  const reviews=[{quote:'أجمل شيء في BELLA هو أنك تشعرين أنهم يفهمونك قبل أن تشرحي ما تريدين.',name:'سارة · عميلة منذ 2021'},{quote:'جئت من أكادير من أجل تسريحة العرس، وكانت النتيجة أرقى مما تخيلت. عناية حقيقية بكل تفصيل.',name:'نادية · عروس BELLA'},{quote:'المكان هادئ، الفريق محترف، والنتيجة دائماً أنيقة. أصبحت BELLA موعدي المفضل.',name:'مريم · عميلة منذ 2022'}];
  const add=(item:CartItem)=>{setCart([...cart,item]); setToast(`${item.name} أضيف إلى السلة`); setTimeout(()=>setToast(''),2600)};
  const scroll=(id:string)=>{document.getElementById(id)?.scrollIntoView({behavior:'smooth'});setMenu(false)};
- const wa=(text:string)=>window.open(`https://wa.me/${WA}?text=${encodeURIComponent(text)}`,'_blank');
+const wa = (text:string) => {
+  const message = encodeURIComponent(text);
+
+  window.location.href = `whatsapp://send?phone=${WA}&text=${message}`;
+
+  setTimeout(() => {
+    window.open(
+      `https://wa.me/${WA}?text=${message}`,
+      "_blank"
+    );
+  }, 1500);
+};
  return <div className="site-shell"><div className="scroll-progress" style={{width:`${scrollProgress}%`}} aria-hidden="true" />
   <header className="nav"><a className="brand" onClick={()=>scroll('top')}>BELLA <span>BEAUTÉ</span></a><button className="menu-toggle" onClick={()=>setMenu(!menu)} aria-label="القائمة">{menu?'×':'☰'}</button><nav className={menu?'open':''}>{[['story',language==='ar'?'القصة':'L’histoire'],['services',language==='ar'?'الخدمات':'Services'],['boutique',language==='ar'?'البوتيك':'Boutique'],['gallery',language==='ar'?'المعرض':'Galerie'],['contact',language==='ar'?'تواصلي':'Contact']].map(([id,label])=><button key={id} onClick={()=>scroll(id)}>{label}</button>)}<button className="nav-cta" onClick={()=>setBooking(true)}>{language==='ar'?'احجزي موعداً':'Réserver'} <span>↗</span></button><button className="language-toggle" onClick={()=>setLanguage(language==='ar'?'fr':'ar')} aria-label="تغيير اللغة">{language==='ar'?'FR':'AR'}</button></nav><button className="cart" onClick={()=>setCartOpen(true)} aria-label="السلة">السلة <b>{cart.length}</b></button></header>
   <main id="top"> <section className="hero">
