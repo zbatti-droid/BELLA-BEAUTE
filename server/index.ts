@@ -30,6 +30,11 @@ app.use(
   })
 );
 
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 app.use(express.json({limit:'1mb'}));
 const publicLimiter=rateLimit({windowMs:15*60*1000,max:120,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'طلبات كثيرة، يرجى المحاولة بعد قليل.'}});
 app.use('/api',publicLimiter);
@@ -42,12 +47,18 @@ const requireAdmin=(req:express.Request,res:express.Response,next:express.NextFu
 const bookingSchema=z.object({name:z.string().min(2).max(80),phone:z.string().min(8).max(20),service:z.string().min(2).max(80),date:z.string().optional(),notes:z.string().max(500).optional()});
 const orderSchema=z.object({name:z.string().min(2).max(80),phone:z.string().min(8).max(20),items:z.array(z.object({productId:z.string(),quantity:z.number().int().positive().max(10)})).min(1),address:z.string().min(5).max(300)});
 app.get('/api/health',(_req,res)=>res.json({status:'ok',service:'bella-beaute-api'}));
-app.post('/api/auth/login',(req,res)=>{const parsed=z.object({email:z.string().email(),password:z.string().min(8).max(200)}).safeParse(req.body);if(!parsed.success||!adminPassword||parsed.data.email!==adminEmail||parsed.data.password!==adminPassword)return res.status(401).json({error:'بيانات الدخول غير صحيحة'});res.setHeader('Set-Cookie',`bella_session=${signSession(parsed.data.email)}; HttpOnly; SameSite=None; Path=/; Max-Age=28800${process.env.NODE_ENV==='production'?'; Secure':''}`);res.json({ok:true,user:{email:adminEmail,role:'SUPER_ADMIN'}});});
+app.post('/api/auth/login',(req,res)=>{const parsed=z.object({email:z.string().email(),password:z.string().min(8).max(200)}).safeParse(req.body);if(!parsed.success||!adminPassword||parsed.data.email!==adminEmail||parsed.data.password!==adminPassword)return res.status(401).json({error:'بيانات الدخول غير صحيحة'});res.setHeader(
+  'Set-Cookie',
+  `bella_session=${signSession(parsed.data.email)}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=28800`
+);  res.json({ok:true,user:{email:adminEmail,role:'SUPER_ADMIN'}});});
 app.get('/api/auth/me',(req,res)=>{const session=readSession(req);if(!session)return res.status(401).json({error:'غير مصرح'});res.json({user:session});});
-app.post('/api/auth/logout',(_req,res)=>{res.setHeader(
-'Set-Cookie',
-`bella_session=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0`
-);res.json({ok:true});});
+app.post('/api/auth/logout',(_req,res)=>{
+  res.setHeader(
+    'Set-Cookie',
+    'bella_session=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0'
+  );
+  res.json({ok:true});
+});
 app.get('/api/admin/check',requireAdmin,(_req,res)=>res.json({ok:true}));
 app.post('/api/bookings',async (req,res)=>{const parsed=bookingSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'بيانات الحجز غير صالحة',details:parsed.error.flatten()});
   try {
