@@ -10,16 +10,27 @@ const app=express(); app.set('trust proxy', 1); const port=Number(process.env.PO
 if (process.env.NODE_ENV==='production' && (!process.env.DATABASE_URL || !process.env.ADMIN_PASSWORD || !process.env.AUTH_SECRET)) {
   throw new Error('Production requires DATABASE_URL, ADMIN_PASSWORD and AUTH_SECRET');
 }
-app.use(helmet({crossOriginResourcePolicy:{policy:'cross-origin'}}));
+app.use(helmet({
+  crossOriginResourcePolicy:{
+    policy:'cross-origin'
+  }
+}));
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
+  "https://bella-beaute-site-79ireo7r-zbatti-7216s-projects.vercel.app"
 ].filter(Boolean) as string[];
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));app.use(express.json({limit:'1mb'}));
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
+
+app.use(express.json({limit:'1mb'}));
 const publicLimiter=rateLimit({windowMs:15*60*1000,max:120,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'طلبات كثيرة، يرجى المحاولة بعد قليل.'}});
 app.use('/api',publicLimiter);
 const adminEmail=process.env.ADMIN_EMAIL||'admin@bellabeaute.ma';
