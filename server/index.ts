@@ -16,12 +16,7 @@ app.use(helmet({
   }
 }));
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  process.env.FRONTEND_URL,
-  "https://bella-beaute-site-79ireo7r-zbatti-7216s-projects.vercel.app"
-].filter(Boolean) as string[];
+
 
 app.use(
   cors({
@@ -41,9 +36,20 @@ app.use(
     credentials: true,
   })
 );
-
 app.options('*', cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (
+      origin.endsWith(".vercel.app") ||
+      origin === "http://localhost:5173" ||
+      origin === "http://localhost:5174"
+    ) {
+      return callback(null, true);
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 }));
 
