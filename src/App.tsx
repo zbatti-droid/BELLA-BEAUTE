@@ -68,7 +68,7 @@ useEffect(()=>{
   <main id="top"> <section className="hero">
   <video
     className="hero-video"
-    src="/hero-video.mp4"
+   src={salonVideos[0] || "/hero-video.mp4"} 
     autoPlay
     muted
     loop
