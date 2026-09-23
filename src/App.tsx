@@ -22,7 +22,7 @@ const [salonVideos,setSalonVideos]=useState<string[]>(()=>{
   }
 });
 
-const [heroVideo,setHeroVideo] = useState<string>('');
+
 const [salonImages,setSalonImages]=useState<string[]>(()=>{
   try{
     return JSON.parse(localStorage.getItem('bella-salon-images') || '[]');
@@ -46,48 +46,7 @@ useEffect(()=>{
   );
 },[salonVideos]);
 // جلب آخر فيديو من Supabase
-useEffect(()=>{
 
-  const loadHeroVideo = async()=>{
-
-    const {data,error}=await supabase
-      .storage
-      .from('bella-media')
-      .list('videos',{
-        limit:1,
-        sortBy:{
-          column:'created_at',
-          order:'desc'
-        }
-      });
-
-
-    if(error){
-      console.log("Video load error:", error);
-      return;
-    }
-
-
-    if(data && data.length > 0){
-
-      const filePath = `videos/${data[0].name}`;
-
-      const {data:url}=supabase
-        .storage
-        .from('bella-media')
-        .getPublicUrl(filePath);
-
-
-      setHeroVideo(url.publicUrl);
-
-    }
-
-  };
-
-
-  loadHeroVideo();
-
-},[]);
 
  const [menu,setMenu]=useState(false); const [language,setLanguage]=useState<'ar'|'fr'>(()=>localStorage.getItem('bella-language')==='fr'?'fr':'ar'); const [bookingService,setBookingService]=useState(''); const [bookingSubmitting,setBookingSubmitting]=useState(false); const [reviewIndex,setReviewIndex]=useState(0); const [category,setCategory]=useState('الكل'); const [cart,setCart]=useState<CartItem[]>(()=>{try{return JSON.parse(localStorage.getItem('bella-cart')||'[]')}catch{return []}}); const [cartOpen,setCartOpen]=useState(false); const [booking,setBooking]=useState(false); const [selectedDress,setSelectedDress]=useState<AdminProduct|null>(null); const [selectedImage,setSelectedImage]=useState(''); const [size,setSize]=useState('M'); const [toast,setToast]=useState(''); const [scrollProgress,setScrollProgress]=useState(0);
  useEffect(()=>{document.documentElement.lang=language;document.documentElement.dir=language==='ar'?'rtl':'ltr'},[language]);
