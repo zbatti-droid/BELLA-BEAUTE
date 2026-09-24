@@ -146,7 +146,17 @@ export function AdminPanel({ products, salonImages, salonVideos, onSave, onDelet
       <header className="admin-header">
         <div>
           <div className="section-label">BELLA BEAUTÉ / ADMIN</div>
-          <h1>إدارة البوتيك والوسائط</h1>
+          <h1>إدارة البوتيك والوسائط</h1>    
+<button
+  className="admin-logout"
+  onClick={onExit}
+>
+  تسجيل الخروج
+</button>
+
+
+
+
           <p>أضيفي الفساتين وصور وفيديوهات الصالون من مكان واحد.</p>
         </div>
         <button className="admin-exit" onClick={onExit}>العودة إلى الموقع ↗</button>

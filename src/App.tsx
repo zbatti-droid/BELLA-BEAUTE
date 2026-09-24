@@ -169,7 +169,12 @@ useEffect(()=>{
     prev.filter(item=>item.id!==id)
   );
 
-}} onExit={()=>{fetch(`${API_URL}/api/auth/logout`,{method:'POST',credentials:'include'});window.history.pushState({},'', '/');setAdmin(false)}}/>;}
+}}onExit={async()=>{
+  await supabase.auth.signOut();
+  window.history.pushState({},'', '/');
+  setAdmin(false);
+}}/>
+;}
  const reviews=[{quote:'أجمل شيء في BELLA هو أنك تشعرين أنهم يفهمونك قبل أن تشرحي ما تريدين.',name:'سارة · عميلة منذ 2021'},{quote:'جئت من أكادير من أجل تسريحة العرس، وكانت النتيجة أرقى مما تخيلت. عناية حقيقية بكل تفصيل.',name:'نادية · عروس BELLA'},{quote:'المكان هادئ، الفريق محترف، والنتيجة دائماً أنيقة. أصبحت BELLA موعدي المفضل.',name:'مريم · عميلة منذ 2022'}];
  const add=(item:CartItem)=>{setCart([...cart,item]); setToast(`${item.name} أضيف إلى السلة`); setTimeout(()=>setToast(''),2600)};
  const scroll=(id:string)=>{document.getElementById(id)?.scrollIntoView({behavior:'smooth'});setMenu(false)};
