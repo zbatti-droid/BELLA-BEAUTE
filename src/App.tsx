@@ -193,14 +193,17 @@ const wa = (text:string) => {
  return <div className="site-shell"><div className="scroll-progress" style={{width:`${scrollProgress}%`}} aria-hidden="true" />
   <header className="nav"><a className="brand" onClick={()=>scroll('top')}>BELLA <span>BEAUTÉ</span></a><button className="menu-toggle" onClick={()=>setMenu(!menu)} aria-label="القائمة">{menu?'×':'☰'}</button><nav className={menu?'open':''}>{[['story',language==='ar'?'القصة':'L’histoire'],['services',language==='ar'?'الخدمات':'Services'],['boutique',language==='ar'?'البوتيك':'Boutique'],['gallery',language==='ar'?'المعرض':'Galerie'],['contact',language==='ar'?'تواصلي':'Contact']].map(([id,label])=><button key={id} onClick={()=>scroll(id)}>{label}</button>)}<button className="nav-cta" onClick={()=>setBooking(true)}>{language==='ar'?'احجزي موعداً':'Réserver'} <span>↗</span></button><button className="language-toggle" onClick={()=>setLanguage(language==='ar'?'fr':'ar')} aria-label="تغيير اللغة">{language==='ar'?'FR':'AR'}</button></nav><button className="cart" onClick={()=>setCartOpen(true)} aria-label="السلة">السلة <b>{cart.length}</b></button></header>
   <main id="top"> <section className="hero">
-  <video
-    className="hero-video"
-  src={salonVideos[0] || "/hero-video.mp4"}
-    autoPlay
-    muted
-    loop
-    playsInline
-    preload="metadata"/>
+    
+<video
+className="hero-video"
+src={salonVideos[0] || "/hero-video.mp4"}
+poster="/WEB.png"
+autoPlay
+muted
+loop
+playsInline
+preload="metadata"
+/>
 
   <div className="hero-image"/><div className="hero-shade"/><div className="hero-content"><p className="kicker">BEAUTY · FASHION · RITUAL</p><h1>{language==='ar'?<>الجمال،<br/><i>بصيغة</i> مختلفة.</>:<>La beauté,<br/><i>autrement.</i></>}</h1><p className="hero-copy">{language==='ar'?'صالون جمال وبوتيك أزياء في أيت ملول، نصمم لك لحظات تشبهك وتبقى في الذاكرة.':'Un salon de beauté et une boutique mode à Ait Melloul, pour des moments qui vous ressemblent.'}</p><div className="hero-actions"><button className="button gold" onClick={()=>setBooking(true)}>{language==='ar'?'احجزي تجربتك':'Réserver votre moment'} <span>↗</span></button><button className="text-button" onClick={()=>scroll('services')}>{language==='ar'?'اكتشفي الخدمات':'Découvrir les services'} <span>↓</span></button></div></div><div className="hero-note">Ait Melloul · Morocco <span>—</span> Since 2018</div><div className="scroll-cue">مرّري للأسفل <span>↓</span></div></section>
    <section className="trust-strip"><div><strong>07+</strong><span>{language==='ar'?'سنوات من الخبرة':'ans d’expérience'}</span></div><div><strong>100%</strong><span>{language==='ar'?'عناية شخصية':'attention sur mesure'}</span></div><div><strong>09—00</strong><span>{language==='ar'?'كل يوم · أيت ملول':'tous les jours · Ait Melloul'}</span></div><div><strong>★</strong><span>{language==='ar'?'عناية بكل تفصيل':'soin de chaque détail'}</span></div></section>
