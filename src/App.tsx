@@ -195,16 +195,15 @@ const wa = (text:string) => {
   <main id="top"> <section className="hero">
     
 <video
-className="hero-video-small.mp4"
-src={salonVideos[0] || "/hero-video-small.mp4"}
-poster="/WEB.webp"
-autoPlay
-muted
-loop
-playsInline
-preload="none"
+  className="hero-video"
+  src="/hero-video-small.mp4"
+  poster="/WEB.webp"
+  autoPlay
+  muted
+  loop
+  playsInline
+  preload="metadata"
 />
-
   <div className="hero-image"/><div className="hero-shade"/><div className="hero-content"><p className="kicker">BEAUTY · FASHION · RITUAL</p><h1>{language==='ar'?<>الجمال،<br/><i>بصيغة</i> مختلفة.</>:<>La beauté,<br/><i>autrement.</i></>}</h1><p className="hero-copy">{language==='ar'?'صالون جمال وبوتيك أزياء في أيت ملول، نصمم لك لحظات تشبهك وتبقى في الذاكرة.':'Un salon de beauté et une boutique mode à Ait Melloul, pour des moments qui vous ressemblent.'}</p><div className="hero-actions"><button className="button gold" onClick={()=>setBooking(true)}>{language==='ar'?'احجزي تجربتك':'Réserver votre moment'} <span>↗</span></button><button className="text-button" onClick={()=>scroll('services')}>{language==='ar'?'اكتشفي الخدمات':'Découvrir les services'} <span>↓</span></button></div></div><div className="hero-note">Ait Melloul · Morocco <span>—</span> Since 2018</div><div className="scroll-cue">مرّري للأسفل <span>↓</span></div></section>
    <section className="trust-strip"><div><strong>07+</strong><span>{language==='ar'?'سنوات من الخبرة':'ans d’expérience'}</span></div><div><strong>100%</strong><span>{language==='ar'?'عناية شخصية':'attention sur mesure'}</span></div><div><strong>09—00</strong><span>{language==='ar'?'كل يوم · أيت ملول':'tous les jours · Ait Melloul'}</span></div><div><strong>★</strong><span>{language==='ar'?'عناية بكل تفصيل':'soin de chaque détail'}</span></div></section>
    <section className="manifesto" id="story"><div className="section-label">01 / OUR HOUSE</div><div className="manifesto-grid"><h2>{language==='ar'?<>مكانٌ لا تخرجين<br/><i>منه كما دخلتِ.</i></>:<>Un lieu dont<br/><i>vous repartez différente.</i></>}</h2><div><p className="lead">في BELLA BEAUTÉ، نمزج خبرة الجمال بحسّ الأزياء. كل تفصيل صُمّم ليمنحك مساحة هادئة، ونتيجة تليق بك.</p><p>من أول استشارة إلى آخر نظرة في المرآة، نؤمن أن الفخامة ليست في المبالغة؛ بل في الإتقان، والوقت الذي نمنحه لك، واللمسة التي لا تُنسى.</p><button className="underlink" onClick={()=>scroll('services')}>تعرّفي على فلسفتنا <span>↗</span></button></div></div></section>
