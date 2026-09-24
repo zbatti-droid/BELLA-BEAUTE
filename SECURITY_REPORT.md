@@ -18,7 +18,7 @@
 | High | Admin currently has a SUPER_ADMIN bootstrap gate only | Add database-backed users, password hashing, role permissions and account recovery |
 | Critical | No verified database connection/migration | Run Prisma generate/migrate against PostgreSQL and test restart persistence |
 | High | No CSRF/session protection | Use same-site cookies plus CSRF protection for cookie-authenticated mutations |
-| High | File uploads are browser FileReader data URLs | Replace with signed Cloudinary/S3 upload; validate MIME, size and dimensions server-side |
+| High | File uploads are browser  data URLs | Replace with signed CloudinaryFileReader/S3 upload; validate MIME, size and dimensions server-side |
 | High | Orders do not verify prices or stock server-side | Resolve products/prices from DB in a transaction and prevent negative stock |
 | Medium | No request correlation/audit logging | Add structured logger, request ID and ActivityLog writes |
 | Medium | CORS default is development localhost | Fail closed in production and allow an explicit origin list |

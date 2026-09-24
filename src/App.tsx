@@ -6,14 +6,58 @@ import { AdminPanel, AdminProduct } from './components/AdminPanel';
 import { supabase } from './lib/supabase';
 type CartItem = typeof dresses[number];
 const WA='212631751974';
-const API_URL=import.meta.env.VITE_API_URL||'http://localhost:4000';
+const API_URL = import.meta.env.VITE_API_URL || "";
 const protectImage=(event: React.SyntheticEvent<HTMLImageElement>)=>{ event.currentTarget.style.display='none'; event.currentTarget.parentElement?.classList.add('image-fallback'); };
 
 export function App(){
  const [admin,setAdmin]=useState(()=>window.location.pathname==='/admin');
  const [adminAuthenticated,setAdminAuthenticated]=useState(false);
  const [adminChecking,setAdminChecking]=useState(()=>window.location.pathname==='/admin');
- const [catalog,setCatalog]=useState<AdminProduct[]>(()=>{try{return JSON.parse(localStorage.getItem('bella-products')||'null')||dresses}catch{return dresses}});
+const [catalog,setCatalog]=useState<AdminProduct[]>([]);
+useEffect(()=>{
+
+  const loadProducts = async()=>{
+
+    const {data,error}=await supabase
+      .from('products')
+      .select('*')
+      .order('created_at',{ascending:false});
+
+
+    if(error){
+      console.log("LOAD PRODUCTS ERROR:", error);
+      return;
+    }
+
+
+    if(data){
+
+      setCatalog(
+        data.map((p:any)=>({
+          id:p.id,
+          name:p.name,
+          frName:p.fr_name,
+          category:p.category,
+          frCategory:p.fr_category,
+          price:p.price,
+          image:p.image,
+          images:p.images || []
+        }))
+      );
+
+    }
+
+  };
+
+
+  loadProducts();
+
+},[]);
+
+
+
+
+
 const [salonVideos,setSalonVideos]=useState<string[]>(()=>{
   try{
     return JSON.parse(localStorage.getItem('bella-salon-videos') || '[]');
@@ -51,15 +95,81 @@ useEffect(()=>{
  const [menu,setMenu]=useState(false); const [language,setLanguage]=useState<'ar'|'fr'>(()=>localStorage.getItem('bella-language')==='fr'?'fr':'ar'); const [bookingService,setBookingService]=useState(''); const [bookingSubmitting,setBookingSubmitting]=useState(false); const [reviewIndex,setReviewIndex]=useState(0); const [category,setCategory]=useState('الكل'); const [cart,setCart]=useState<CartItem[]>(()=>{try{return JSON.parse(localStorage.getItem('bella-cart')||'[]')}catch{return []}}); const [cartOpen,setCartOpen]=useState(false); const [booking,setBooking]=useState(false); const [selectedDress,setSelectedDress]=useState<AdminProduct|null>(null); const [selectedImage,setSelectedImage]=useState(''); const [size,setSize]=useState('M'); const [toast,setToast]=useState(''); const [scrollProgress,setScrollProgress]=useState(0);
  useEffect(()=>{document.documentElement.lang=language;document.documentElement.dir=language==='ar'?'rtl':'ltr'},[language]);
  useEffect(()=>{const onPop=()=>setAdmin(window.location.pathname==='/admin');window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop)},[]);
- useEffect(()=>{if(!admin){setAdminChecking(false);return;}setAdminChecking(true);fetch(`${API_URL}/api/auth/me`,{credentials:'include'}).then(r=>setAdminAuthenticated(r.ok)).catch(()=>setAdminAuthenticated(false)).finally(()=>setAdminChecking(false))},[admin]);
+ useEffect(()=>{
+
+  if(!admin){
+    setAdminChecking(false);
+    return;
+  }
+
+  supabase.auth.getSession()
+    .then(({data})=>{
+      setAdminAuthenticated(!!data.session);
+    })
+    .catch(()=>{
+      setAdminAuthenticated(false);
+    })
+    .finally(()=>{
+      setAdminChecking(false);
+    });
+
+},[admin]);
  useEffect(()=>{localStorage.setItem('bella-language',language)},[language]);
  useEffect(()=>{localStorage.setItem('bella-cart',JSON.stringify(cart))},[cart]);
  useEffect(()=>{const update=()=>{const max=document.documentElement.scrollHeight-window.innerHeight;setScrollProgress(max>0?(window.scrollY/max)*100:0)};update();window.addEventListener('scroll',update,{passive:true});return()=>window.removeEventListener('scroll',update)},[]);
- useEffect(()=>{localStorage.setItem('bella-products',JSON.stringify(catalog))},[catalog]);
+ // Products are now stored in Supabase      useEffect(()=>{localStorage.setItem('bella-products',JSON.stringify(catalog))},[catalog]);
 
  const currentHour=new Date().getHours(); const isOpen=currentHour>=9;
  const visibleDresses=category==='الكل'?catalog:catalog.filter(item=>item.category===category);
- if(admin){if(adminChecking)return <div className="admin-page"><p>جارٍ التحقق من الجلسة…</p></div>;if(!adminAuthenticated)return <AdminLogin onSuccess={()=>setAdminAuthenticated(true)} onExit={()=>{window.history.pushState({},'', '/');setAdmin(false)}}/>;return <AdminPanel products={catalog} salonImages={salonImages} salonVideos={salonVideos} onMediaChange={(images,videos)=>{setSalonImages(images);setSalonVideos(videos)}} onSave={product=>setCatalog(catalog.some(item=>item.id===product.id)?catalog.map(item=>item.id===product.id?product:item):[...catalog,product])} onDelete={id=>setCatalog(catalog.filter(item=>item.id!==id))} onExit={()=>{fetch(`${API_URL}/api/auth/logout`,{method:'POST',credentials:'include'});window.history.pushState({},'', '/');setAdmin(false)}}/>;}
+ if(admin){if(adminChecking)return <div className="admin-page"><p>جارٍ التحقق من الجلسة…</p></div>;if(!adminAuthenticated)return <AdminLogin onSuccess={()=>setAdminAuthenticated(true)} onExit={()=>{window.history.pushState({},'', '/');setAdmin(false)}}/>;return <AdminPanel products={catalog} salonImages={salonImages} salonVideos={salonVideos} onMediaChange={(images,videos)=>{setSalonImages(images);setSalonVideos(videos)}}  onSave={async(product)=>{
+
+  const { error } = await supabase
+    .from('products')
+    .upsert({
+      id: product.id,
+      name: product.name,
+      fr_name: product.frName,
+      category: product.category,
+      fr_category: product.frCategory,
+      price: product.price,
+      image: product.image,
+      images: product.images
+    });
+
+
+  if(error){
+    console.log("SAVE PRODUCT ERROR:", error);
+    return;
+  }
+
+
+  setCatalog(prev =>
+    prev.some(item=>item.id===product.id)
+      ? prev.map(item =>
+          item.id===product.id ? product : item
+        )
+      : [...prev, product]
+  );
+
+}} onDelete={async(id)=>{
+
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+
+  if(error){
+    console.log("DELETE PRODUCT ERROR:", error);
+    return;
+  }
+
+
+  setCatalog(prev =>
+    prev.filter(item=>item.id!==id)
+  );
+
+}} onExit={()=>{fetch(`${API_URL}/api/auth/logout`,{method:'POST',credentials:'include'});window.history.pushState({},'', '/');setAdmin(false)}}/>;}
  const reviews=[{quote:'أجمل شيء في BELLA هو أنك تشعرين أنهم يفهمونك قبل أن تشرحي ما تريدين.',name:'سارة · عميلة منذ 2021'},{quote:'جئت من أكادير من أجل تسريحة العرس، وكانت النتيجة أرقى مما تخيلت. عناية حقيقية بكل تفصيل.',name:'نادية · عروس BELLA'},{quote:'المكان هادئ، الفريق محترف، والنتيجة دائماً أنيقة. أصبحت BELLA موعدي المفضل.',name:'مريم · عميلة منذ 2022'}];
  const add=(item:CartItem)=>{setCart([...cart,item]); setToast(`${item.name} أضيف إلى السلة`); setTimeout(()=>setToast(''),2600)};
  const scroll=(id:string)=>{document.getElementById(id)?.scrollIntoView({behavior:'smooth'});setMenu(false)};
@@ -99,9 +209,20 @@ const wa = (text:string) => {
   </main><footer><div className="brand">BELLA <span>BEAUTÉ</span></div><p>© 2026 BELLA BEAUTÉ. Made with intention.</p><p>Ait Melloul · Morocco</p><a className="footer-social" href="https://www.instagram.com/souadsouadane/" target="_blank" rel="noreferrer">Instagram ↗</a></footer>
   <AnimatePresence>{cartOpen&&<motion.div className="cart-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setCartOpen(false)}><motion.aside className="cart-drawer" initial={{x:-380}} animate={{x:0}} exit={{x:-380}} onClick={e=>e.stopPropagation()}><div className="cart-drawer-head"><div><div className="section-label">YOUR EDIT</div><h2>{language==='ar'?'سلتك.':'Votre sélection.'}</h2></div><div className="cart-head-actions">{cart.length>0&&<button className="clear-cart" onClick={()=>setCart([])}>{language==='ar'?'إفراغ':'Vider'}</button>}<button className="close" onClick={()=>setCartOpen(false)}>×</button></div></div>{cart.length===0?<div className="empty-cart"><p>{language==='ar'?'السلة فارغة حالياً.':'Votre panier est vide.'}</p><button className="underlink" onClick={()=>{setCartOpen(false);scroll('boutique')}}>{language==='ar'?'اكتشفي المجموعة ↗':'Découvrir la collection ↗'}</button></div>:<><div className="cart-items">{cart.map((item,index)=><div className="cart-item" key={`${item.id}-${index}`}><img src={item.image} alt={item.name}/><div><h3>{item.name}</h3><p>{item.category}</p><span>{item.price}</span></div><button aria-label="حذف" onClick={()=>setCart(cart.filter((_,i)=>i!==index))}>×</button></div>)}</div><div className="cart-total"><span>{language==='ar'?'المجموع':'Total'}</span><strong>{calculateCartTotal(cart).toLocaleString('fr-MA')} DH</strong></div><button className="button gold cart-order" onClick={()=>{wa(formatOrderMessage(cart));setCartOpen(false)}}>{language==='ar'?'إتمام الطلب عبر WhatsApp ↗':'Finaliser sur WhatsApp ↗'}</button></>}</motion.aside></motion.div>}{booking&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setBooking(false)}><motion.div className="booking-modal" initial={{y:30,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} onClick={e=>e.stopPropagation()}><button className="close" onClick={()=>setBooking(false)}>×</button><div className="section-label">YOUR MOMENT</div><h2>{language==='ar'?<>احجزي <i>تجربتك.</i></>:<>Réservez<br/><i>votre moment.</i></>}</h2><p>{language==='ar'?'أرسلي لنا التفاصيل وسنعود إليك لتأكيد الموعد.':'Laissez-nous vos détails et nous vous contacterons pour confirmer.'}</p><form onSubmit={async e=>{e.preventDefault();if(bookingSubmitting)return;setBookingSubmitting(true);const form=e.currentTarget;const value=(name:string)=>(form.elements.namedItem(name) as HTMLInputElement|HTMLSelectElement).value;const payload={name:value('name'),phone:value('phone'),service:value('service'),date:value('date'),notes:`Heure souhaitée: ${value('time')}`};try{await fetch(`${API_URL}/api/bookings`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})}catch{ /* WhatsApp remains the fallback channel */ }wa(`مرحباً BELLA BEAUTÉ، أريد حجز موعد.\nالاسم: ${value('name')}\nالهاتف: ${value('phone')}\nالخدمة: ${value('service')}\nالتاريخ: ${value('date')}\nالساعة: ${value('time')}`);setBookingSubmitting(false);setBooking(false)}}><input name="name" placeholder={language==='ar'?'الاسم الكامل':'Nom complet'} required/><input name="phone" placeholder={language==='ar'?'رقم الهاتف':'Téléphone'} required/><select name="service" value={bookingService} onChange={e=>setBookingService(e.target.value)} required><option value="">{language==='ar'?'اختاري الخدمة':'Choisir un service'}</option><option>تصفيف الشعر</option><option>عروس BELLA</option><option>عناية وجمال</option></select><div className="booking-row"><input name="date" type="date" required/><input name="time" type="time" required/></div><button className="button gold" type="submit" disabled={bookingSubmitting}>{bookingSubmitting?(language==='ar'?'جارٍ تجهيز الطلب…':'Préparation…'):(language==='ar'?'متابعة عبر واتساب ↗':'Continuer sur WhatsApp ↗')}</button></form></motion.div></motion.div>}</AnimatePresence>{selectedDress&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setSelectedDress(null)}><motion.div className="product-modal" initial={{y:25,opacity:0}} animate={{y:0,opacity:1}} exit={{y:25,opacity:0}} onClick={e=>e.stopPropagation()}><button className="close" onClick={()=>setSelectedDress(null)}>×</button><div className="product-modal-grid"><div className="product-modal-image"><img src={selectedDress.image} alt={selectedDress.name} onError={protectImage}/></div><div className="product-modal-copy"><div className="section-label">BELLA EDIT</div><h2>{language==='ar'?selectedDress.name:selectedDress.frName}</h2><p className="product-category">{language==='ar'?selectedDress.category:selectedDress.frCategory}</p><strong className="product-price">{selectedDress.price}</strong><p className="product-description">{language==='ar'?'قطعة مختارة بعناية بقصّة أنيقة وخامة تمنحك حضوراً راقياً في كل مناسبة.':'Une pièce choisie avec soin, une coupe élégante et une matière pensée pour vos moments précieux.'}</p><label>{language==='ar'?'اختاري المقاس':'Choisir la taille'}</label><div className="sizes">{['S','M','L','XL'].map(item=><button className={size===item?'active':''} key={item} onClick={()=>setSize(item)}>{item}</button>)}</div><div className="product-actions"><button className="button gold" onClick={()=>{add(selectedDress);setSelectedDress(null)}}>{language==='ar'?'أضيفي إلى السلة':'Ajouter au panier'}</button><button className="whatsapp-product" onClick={()=>wa(`مرحباً BELLA BEAUTÉ، أريد ${selectedDress.name} بالمقاس ${size}.`)}>{language==='ar'?'اطلبي عبر WhatsApp ↗':'Commander sur WhatsApp ↗'}</button></div></div></div></motion.div></motion.div>}{toast&&<div className="toast">{toast}</div>}<button className="floating-wa" onClick={()=>wa('مرحباً BELLA BEAUTÉ، أريد حجز موعد.')} aria-label="الحجز عبر واتساب"><span>◔</span><b>احجزي عبر WhatsApp</b></button>
   {scrollProgress>12&&<button className="back-top" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} aria-label="العودة إلى الأعلى">↑</button>}</div>
-}
 
+
+
+}
 function AdminLogin({onSuccess,onExit}:{onSuccess:()=>void;onExit:()=>void}){
  const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);
- return <main className="admin-page"><section className="admin-form admin-login"><div className="section-label">BELLA BEAUTÉ / PRIVATE AREA</div><h1>تسجيل دخول الإدارة</h1><p>هذه المنطقة مخصصة لفريق BELLA BEAUTÉ.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');const r=await fetch(`${API_URL}/api/auth/login`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});if(r.ok)onSuccess();else setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');setBusy(false)}}><label>البريد الإلكتروني<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username"/></label><label>كلمة المرور<input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/></label>{error&&<p role="alert" className="form-error">{error}</p>}<button className="button gold" disabled={busy}>{busy?'جارٍ التحقق…':'دخول آمن'}</button></form><button className="admin-exit" onClick={onExit}>العودة إلى الموقع</button></section></main>;
+ return <main className="admin-page"><section className="admin-form admin-login"><div className="section-label">BELLA BEAUTÉ / PRIVATE AREA</div><h1>تسجيل دخول الإدارة</h1><p>هذه المنطقة مخصصة لفريق BELLA BEAUTÉ.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');   const { error } = await supabase.auth.signInWithPassword({
+  email,
+  password
+});
+
+if(error){
+  setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+}else{
+  onSuccess();
+}    setBusy(false)}}><label>البريد الإلكتروني<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username"/></label><label>كلمة المرور<input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/></label>{error&&<p role="alert" className="form-error">{error}</p>}<button className="button gold" disabled={busy}>{busy?'جارٍ التحقق…':'دخول آمن'}</button></form><button className="admin-exit" onClick={onExit}>العودة إلى الموقع</button></section></main>;
 }
