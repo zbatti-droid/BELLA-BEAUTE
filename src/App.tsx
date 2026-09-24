@@ -10,9 +10,9 @@ const API_URL = import.meta.env.VITE_API_URL || "";
 const protectImage=(event: React.SyntheticEvent<HTMLImageElement>)=>{ event.currentTarget.style.display='none'; event.currentTarget.parentElement?.classList.add('image-fallback'); };
 
 export function App(){
- const [admin,setAdmin]=useState(()=>window.location.pathname==='/admin');
+ const [admin,setAdmin]=useState(()=>window.location.pathname==='/bella-control');
  const [adminAuthenticated,setAdminAuthenticated]=useState(false);
- const [adminChecking,setAdminChecking]=useState(()=>window.location.pathname==='/admin');
+ const [adminChecking,setAdminChecking]=useState(()=>window.location.pathname==='/bella-control');
 const [catalog,setCatalog]=useState<AdminProduct[]>([]);
 useEffect(()=>{
 
@@ -94,7 +94,7 @@ useEffect(()=>{
 
  const [menu,setMenu]=useState(false); const [language,setLanguage]=useState<'ar'|'fr'>(()=>localStorage.getItem('bella-language')==='fr'?'fr':'ar'); const [bookingService,setBookingService]=useState(''); const [bookingSubmitting,setBookingSubmitting]=useState(false); const [reviewIndex,setReviewIndex]=useState(0); const [category,setCategory]=useState('الكل'); const [cart,setCart]=useState<CartItem[]>(()=>{try{return JSON.parse(localStorage.getItem('bella-cart')||'[]')}catch{return []}}); const [cartOpen,setCartOpen]=useState(false); const [booking,setBooking]=useState(false); const [selectedDress,setSelectedDress]=useState<AdminProduct|null>(null); const [selectedImage,setSelectedImage]=useState(''); const [size,setSize]=useState('M'); const [toast,setToast]=useState(''); const [scrollProgress,setScrollProgress]=useState(0);
  useEffect(()=>{document.documentElement.lang=language;document.documentElement.dir=language==='ar'?'rtl':'ltr'},[language]);
- useEffect(()=>{const onPop=()=>setAdmin(window.location.pathname==='/admin');window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop)},[]);
+ useEffect(()=>{const onPop=()=>setAdmin(window.location.pathname==='/bella-control');window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop)},[]);
  useEffect(()=>{
 
   if(!admin){
