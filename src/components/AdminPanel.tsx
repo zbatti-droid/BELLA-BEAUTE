@@ -271,15 +271,16 @@ export function AdminPanel({ products, salonImages, salonVideos, onSave, onDelet
           ))}
         {salonVideos.map(src => (
   <div key={src} className="media-video-card">
-
-    <video
-      src={src}
-      controls
-      muted
-      preload="metadata"
-      className="salon-video"
-    />
-
+<video
+  src={src}
+  autoPlay
+  muted
+  loop
+  playsInline
+  preload="metadata"
+  poster="/hero-poster.webp"
+  className="salon-video"
+/>
     <button
       type="button"
       onClick={() =>
