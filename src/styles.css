@@ -69,9 +69,10 @@ object-fit:cover;
 }
 
 .product-modal-image img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+width:100%;
+height:100%;
+object-fit:contain;
+background:#fff;
 }
 
 .product-modal-copy{
