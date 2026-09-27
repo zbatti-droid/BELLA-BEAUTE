@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { z } from 'zod';
 import { createAppointment } from './repositories/bookingRepository.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { prisma } from './db.js';
 
 const app=express(); app.set('trust proxy', 1); const port=Number(process.env.PORT||4000);
 if (process.env.NODE_ENV==='production' && (!process.env.DATABASE_URL || !process.env.ADMIN_PASSWORD || !process.env.AUTH_SECRET)) {
@@ -50,6 +51,39 @@ const requireAdmin=(req:express.Request,res:express.Response,next:express.NextFu
 const bookingSchema=z.object({name:z.string().min(2).max(80),phone:z.string().min(8).max(20),service:z.string().min(2).max(80),date:z.string().optional(),notes:z.string().max(500).optional()});
 const orderSchema=z.object({name:z.string().min(2).max(80),phone:z.string().min(8).max(20),items:z.array(z.object({productId:z.string(),quantity:z.number().int().positive().max(10)})).min(1),address:z.string().min(5).max(300)});
 app.get('/api/health',(_req,res)=>res.json({status:'ok',service:'bella-beaute-api'}));
+app.get('/api/products', async (_req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        active: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json({
+      ok: true,
+      products
+    });
+
+  } catch (error) {
+    console.error('PRODUCTS_FETCH_ERROR', error);
+    res.status(500).json({
+      error: 'تعذر جلب المنتجات'
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
+
 app.post('/api/auth/login',(req,res)=>{const parsed=z.object({email:z.string().email(),password:z.string().min(8).max(200)}).safeParse(req.body);if(!parsed.success||!adminPassword||parsed.data.email!==adminEmail||parsed.data.password!==adminPassword)return res.status(401).json({error:'بيانات الدخول غير صحيحة'});res.setHeader(
   'Set-Cookie',
   `bella_session=${signSession(parsed.data.email)}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=28800`
