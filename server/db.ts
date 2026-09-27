@@ -1,25 +1,29 @@
-import { createRequire } from 'node:module';
+import { PrismaClient } from '@prisma/client';
 
-const require = createRequire(import.meta.url);
-let client: any;
+let client: PrismaClient | null = null;
 
-export function getPrisma(): any {
+export function getPrisma() {
   if (client) return client;
-  try {
-    const mod = require('@prisma/client');
-    client = new mod.PrismaClient({ log: ['error'] });
-    return client;
-  } catch {
-    throw new Error('DATABASE_NOT_CONFIGURED');
+
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL missing');
   }
+
+  client = new PrismaClient({
+    log: ['error'],
+  });
+
+  return client;
 }
 
-export const prisma: any = new Proxy({}, {
+export const prisma = new Proxy({} as PrismaClient, {
   get(_target, property) {
-    return getPrisma()[property];
+    return (getPrisma() as any)[property];
   },
 });
 
 export async function closeDatabase() {
-  if (client) await client.$disconnect();
+  if (client) {
+    await client.$disconnect();
+  }
 }
