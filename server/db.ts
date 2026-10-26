@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 let client: PrismaClient | null = null;
 
@@ -9,7 +10,12 @@ export function getPrisma() {
     throw new Error('DATABASE_URL missing');
   }
 
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+  });
+
   client = new PrismaClient({
+    adapter,
     log: ['error'],
   });
 

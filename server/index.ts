@@ -74,7 +74,18 @@ app.get('/api/products', async (_req, res) => {
     });
   }
 });
+app.get('/api/services', async (_req, res) => {
+  const services = await prisma.service.findMany({
+    where: {
+      active: true
+    }
+  });
 
+  res.json({
+    ok: true,
+    services
+  });
+});
 
 
 
